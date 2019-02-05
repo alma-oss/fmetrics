@@ -1,10 +1,18 @@
 F-Metrics
-=======
+=========
 
 Library for showing app metrics for prometheus.
 See https://prometheus.io/docs/instrumenting/exposition_formats/ for more information about format itself
 
-## Usage
+## Install
+```
+dotnet add package -s $NUGET_SERVER_PATH Lmc.Metrics
+```
+Where `$NUGET_SERVER_PATH` is the URL of nuget server
+- it should be http://development-nugetserver-common-stable.service.devel1-services.consul:31794 (_make sure you have a correct port, since it changes with deployment_)
+- see http://consul-1.infra.pprod/ui/devel1-services/services/development-nugetServer-common-stable for detailed information (and port)
+
+## Use
 
 ### Simple metric
 _With error handling_
