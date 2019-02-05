@@ -20,6 +20,8 @@ let sourceDir = "src"
 let nugetServer = "http://development-nugetserver-common-stable.service.devel1-services.consul:31794"
 let apiKey = "123456"
 
+let sources = sprintf "-s %s -s https://api.nuget.org/v3/index.json" nugetServer
+
 Target.create "Clean" (fun _ ->
     !! "src/bin"
     ++ "src/obj"
@@ -27,6 +29,9 @@ Target.create "Clean" (fun _ ->
 )
 
 Target.create "Build" (fun _ ->
+    runDotNet (sprintf "restore --no-cache %s" sources) sourceDir
+    runDotNet "build --no-restore" sourceDir
+
     !! "src/*.*proj"
     |> Seq.iter (DotNet.build id)
 )
