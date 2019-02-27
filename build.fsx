@@ -17,10 +17,17 @@ let tee f a =
 
 let sourceDir = "src"
 
-let nugetServer = "http://development-nugetserver-common-stable.service.devel1-services.consul:31794"
+let nugetServer = sprintf "http://development-nugetserver-common-stable.service.devel1-services.consul:%i"
 let apiKey = "123456"
 
-let sources = sprintf "-s %s -s https://api.nuget.org/v3/index.json" nugetServer
+let sources = sprintf "-s %s -s https://api.nuget.org/v3/index.json"
+
+let nugetServerUrl p =
+    match p.Context.Arguments with
+    | head::_ ->
+        if head.StartsWith "http" then head
+        else head |> int |> nugetServer
+    | _ -> failwithf "Release target requires nuget server url or port"
 
 Target.create "Clean" (fun _ ->
     !! "src/bin"
@@ -28,20 +35,24 @@ Target.create "Clean" (fun _ ->
     |> Shell.cleanDirs
 )
 
-Target.create "Build" (fun _ ->
-    runDotNet (sprintf "restore --no-cache %s" sources) sourceDir
+Target.create "Build" (fun p ->
+    let nugetServerUrl = nugetServerUrl p
+
+    runDotNet (sprintf "restore --no-cache %s" (sources nugetServerUrl)) sourceDir
     runDotNet "build --no-restore" sourceDir
 
     !! "src/*.*proj"
     |> Seq.iter (DotNet.build id)
 )
 
-Target.create "Release" (fun _ ->
+Target.create "Release" (fun p ->
+    let nugetServerUrl = nugetServerUrl p
+
     runDotNet "pack" sourceDir
 
     let pushToNuget path =
         sourceDir
-        |> runDotNet (sprintf "nuget push %s -s %s -k %s" path nugetServer apiKey)
+        |> runDotNet (sprintf "nuget push %s -s %s -k %s" path nugetServerUrl apiKey)
 
     !! "src/**/bin/**/*.nupkg"
     |> Seq.iter (fun path ->
@@ -62,4 +73,4 @@ Target.create "Watch" (fun _ ->
 "Build"
     ==> "Watch"
 
-Target.runOrDefault "Build"
+Target.runOrDefaultWithArguments "Build"
