@@ -15,7 +15,7 @@ let tee f a =
     f a
     a
 
-let sourceDir = "src"
+let sourceDir = "."
 
 let nugetServer = sprintf "http://development-nugetserver-common-stable.service.devel1-services.consul:%i"
 let apiKey = "123456"

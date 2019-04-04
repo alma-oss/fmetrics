@@ -170,8 +170,22 @@ metric_with_state {month="1", year="2018"} 4.2
 metric_with_state {month="2", year="2018"} +Inf
 ```
 
+### Metric for service
+If you need metric labels based by `Instance`, you can use shortcut function to do that. _Otherwise it is same as above._
+
+```fs
+open Metrics
+
+let createKeyForInputEvent instance (InputStreamName (StreamName inputStream)) (event: RawEvent) =
+    [
+        ("event", event.Event |> EventName.value)
+        ("input_stream", inputStream)
+    ]
+    |> DataSetKey.createFromInstance instance
+```
+
 ## Release
-1. Increment version in `src/Metrics.fsproj`
+1. Increment version in `Metrics.fsproj`
 2. Update `CHANGELOG.md`
 3. Commit new version and tag it
 4. Run `$ fake build target release`
