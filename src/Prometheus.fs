@@ -43,6 +43,13 @@ module MetricName =
 
     let create = Name.create MetricName NameError
 
+    let createOrFail metricName =
+        metricName
+        |> create
+        |> function
+            | Ok metricName -> metricName
+            | Error e -> failwithf "Metric name %s is invalid. Error: %A" metricName e
+
 //
 // Metric Value
 //
