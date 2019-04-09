@@ -41,9 +41,9 @@ module ResourceAvailability =
 
     let private createDataSetKey instance resourceAvailability =
         [
+            ("res_location", resourceAvailability.Location |> ResourceLocation.value)
             ("res_type", resourceAvailability.Type |> ResourceType.value)
             ("res_identification", resourceAvailability.Identification |> ResourceIdentification.value)
-            ("res_location", resourceAvailability.Location |> ResourceLocation.value)
             ("audience", resourceAvailability.Audience |> Audience.value)
         ]
         |> DataSetKey.createFromInstance instance

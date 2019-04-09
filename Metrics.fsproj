@@ -14,6 +14,7 @@
     <Compile Include="src/Prometheus.fs" />
     <Compile Include="src/State.fs" />
     <Compile Include="src/ResourceAvailability.fs" />
+    <Compile Include="src/ServiceStatus.fs" />
   </ItemGroup>
 
   <ItemGroup>

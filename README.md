@@ -185,10 +185,38 @@ let createKeyForInputEvent instance (InputStreamName (StreamName inputStream)) (
 ```
 
 ## Service metrics
-Service metrics (see [confluence](https://confluence.int.lmc.cz/display/ARCH/Services+Metrics)) are specil status metrics which has its own audience and format.
+Service metrics (see [confluence](https://confluence.int.lmc.cz/display/ARCH/Services+Metrics)) are special status metrics which has its own audience and format.
 
 ### Metric `service_status`
-...todo...
+```fs
+open Metrics
+open ServiceIdentification
+
+let instance = {
+    Domain = Domain "consents"
+    Context = Context "example"
+    Purpose = Purpose "common"
+    Version = Version "stable"
+}
+
+let exampleServiceStatus = {
+    Audience = Audience.Arch
+}
+
+exampleServiceStatus
+|> ServiceStatus.enable instance
+|> ignore    // ignore is there because `enable` function returns Result, which might have error, but we don't care now
+
+ServiceStatus.getFormattedValue()
+|> printfn "%s"
+```
+
+Formatted Metric:
+```
+# HELP service_status Current service status.
+# TYPE service_status gauge
+service_status {svc_domain="consents", svc_context="example", svc_purpose="common", svc_version="stable", audience="arch"} 1
+```
 
 ### Metric `resource_availability`
 ```fs
@@ -219,8 +247,8 @@ Formatted Metric:
 ```
 # HELP resource_availability Current instance resources.
 # TYPE resource_availability gauge
-resource_availability {svc_domain="consents", svc_context="example", svc_purpose="common", svc_version="stable", res_type="kafka-cluster", res_identification="kfall-1.dev1.services.lmc", res_location="kfall-1.dev1.services.lmc", audience="sys"} 1
-resource_availability {svc_domain="consents", svc_context="example", svc_purpose="common", svc_version="stable", res_type="kafka-topic", res_identification="consents-consentorStream-common-all", res_location="kfall-1.dev1.services.lmc", audience="sys"} 1
+resource_availability {svc_domain="consents", svc_context="example", svc_purpose="common", svc_version="stable", res_location="kfall-1.dev1.services.lmc", res_type="kafka-cluster", res_identification="kfall-1.dev1.services.lmc", audience="sys"} 1
+resource_availability {svc_domain="consents", svc_context="example", svc_purpose="common", svc_version="stable", res_location="kfall-1.dev1.services.lmc", res_type="kafka-topic", res_identification="consents-consentorStream-common-all", audience="sys"} 1
 ```
 
 ## Release
