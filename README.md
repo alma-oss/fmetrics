@@ -170,8 +170,89 @@ metric_with_state {month="1", year="2018"} 4.2
 metric_with_state {month="2", year="2018"} +Inf
 ```
 
+### Metric for service
+If you need metric labels based by `Instance`, you can use shortcut function to do that. _Otherwise it is same as above._
+
+```fs
+open Metrics
+
+let createKeyForInputEvent instance (InputStreamName (StreamName inputStream)) (event: RawEvent) =
+    [
+        ("event", event.Event |> EventName.value)
+        ("input_stream", inputStream)
+    ]
+    |> DataSetKey.createFromInstance instance
+```
+
+## Service metrics
+Service metrics (see [confluence](https://confluence.int.lmc.cz/display/ARCH/Services+Metrics)) are special status metrics which has its own audience and format.
+
+### Metric `service_status`
+```fs
+open Metrics
+open ServiceIdentification
+
+let instance = {
+    Domain = Domain "consents"
+    Context = Context "example"
+    Purpose = Purpose "common"
+    Version = Version "stable"
+}
+
+let exampleServiceStatus = {
+    Audience = Audience.Arch
+}
+
+exampleServiceStatus
+|> ServiceStatus.enable instance
+|> ignore    // ignore is there because `enable` function returns Result, which might have error, but we don't care now
+
+ServiceStatus.getFormattedValue()
+|> printfn "%s"
+```
+
+Formatted Metric:
+```
+# HELP service_status Current service status.
+# TYPE service_status gauge
+service_status {svc_domain="consents", svc_context="example", svc_purpose="common", svc_version="stable", audience="arch"} 1
+```
+
+### Metric `resource_availability`
+```fs
+open Metrics
+open ServiceIdentification
+
+let instance = {
+    Domain = Domain "consents"
+    Context = Context "example"
+    Purpose = Purpose "common"
+    Version = Version "stable"
+}
+
+let kafkaClusterResource = ResourceAvailability.createFromStrings "kafka-cluster" "kfall-1.dev1.services.lmc" "kfall-1.dev1.services.lmc" Audience.Sys
+let kafkaTopicResource = ResourceAvailability.createFromStrings "kafka-topic" "consents-consentorStream-common-all" "kfall-1.dev1.services.lmc" Audience.Sys
+
+[
+    kafkaClusterResource
+    kafkaTopicResource
+]
+|> List.iter ((ResourceAvailability.enable instance) >> ignore) // ignore is there because `enable` function returns Result, which might have error, but we don't care now
+
+ResourceAvailability.getFormattedValue()
+|> printfn "%s"
+```
+
+Formatted Metric:
+```
+# HELP resource_availability Current instance resources.
+# TYPE resource_availability gauge
+resource_availability {svc_domain="consents", svc_context="example", svc_purpose="common", svc_version="stable", res_location="kfall-1.dev1.services.lmc", res_type="kafka-cluster", res_identification="kfall-1.dev1.services.lmc", audience="sys"} 1
+resource_availability {svc_domain="consents", svc_context="example", svc_purpose="common", svc_version="stable", res_location="kfall-1.dev1.services.lmc", res_type="kafka-topic", res_identification="consents-consentorStream-common-all", audience="sys"} 1
+```
+
 ## Release
-1. Increment version in `src/Metrics.fsproj`
+1. Increment version in `Metrics.fsproj`
 2. Update `CHANGELOG.md`
 3. Commit new version and tag it
 4. Run `$ fake build target release`

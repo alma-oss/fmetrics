@@ -12,43 +12,93 @@ module State =
     let private kvPairToTuple (kvPair: KeyValuePair<_, _>) =
         (kvPair.Key, kvPair.Value)
 
-    let private incrementSetValue value key (metricDataSet: MetricDataSet) =
+    let private addSetValue value key (metricDataSet: MetricDataSet) =
         metricDataSet.AddOrUpdate(
             key,
             value,
-            fun _ (old) -> old + value
+            fun _ old -> old + value
         )
 
-    let incrementMetricSetValue value metric setKey =
-        match metricsWithDataSets.TryGetValue metric with
-        | true, dataSet ->
-            dataSet
-            |> incrementSetValue value setKey
-        | _ ->
-            let dataSet = new MetricDataSet()
+    let private setSetValue value key (metricDataSet: MetricDataSet) =
+        metricDataSet.AddOrUpdate(
+            key,
+            value,
+            fun _ _ -> value
+        )
 
-            if metricsWithDataSets.TryAdd(metric, dataSet)
-            then dataSet |> incrementSetValue value setKey
-            else failwithf "DataSet \"%A\" for Metric %A was not stored." setKey metric
+    let private createSetValue metric setKey value =
+        let dataSet = new MetricDataSet()
+
+        if metricsWithDataSets.TryAdd(metric, dataSet)
+        then dataSet |> setSetValue value setKey
+        else failwithf "DataSet \"%A\" for Metric %A was not stored." setKey metric
+
+    let private (|HasDataSet|_|) metric =
+        match metricsWithDataSets.TryGetValue metric with
+        | true, dataSet -> Some dataSet
+        | _ -> None
+
+    let private (|HasSetValue|_|) (dataSet: MetricDataSet) setKey =
+        match dataSet.TryGetValue setKey with
+        | true, value -> Some value
+        | _ -> None
+
+    let private (|HasValue|_|) metric =
+        match metricsWithValues.TryGetValue metric with
+        | true, dataSet -> Some dataSet
+        | _ -> None
+
+    //
+    // Write
+    //
+
+    let incrementMetricSetValue value metric setKey =
+        match metric with
+        | HasDataSet dataSet ->
+            dataSet
+            |> addSetValue value setKey
+        | _ ->
+            value
+            |> createSetValue metric setKey
 
     let incrementMetricValue value metric =
         metricsWithValues.AddOrUpdate(
             metric,
             value,
-            fun _ (old) -> old + value
+            fun _ old -> old + value
         )
 
+    let enableStatusMetric metric setKey =
+        match metric with
+        | HasDataSet dataSet ->
+            match setKey with
+            | HasSetValue dataSet value when value = Int 1 -> ()
+            | _ -> setSetValue (Int 1) setKey dataSet |> ignore
+        | _ -> createSetValue metric setKey (Int 1) |> ignore
+
+    let disableStatusMetric metric setKey =
+        match metric with
+        | HasDataSet dataSet ->
+            match setKey with
+            | HasSetValue dataSet value when value = Int 0 -> ()
+            | _ -> setSetValue (Int 0) setKey dataSet |> ignore
+        | _ -> createSetValue metric setKey (Int 0) |> ignore
+
+    //
+    // Read
+    //
+
     let getMetric metric =
-        match metricsWithDataSets.TryGetValue metric with
-        | true, dataSets ->
-            dataSets
+        match metric with
+        | HasDataSet dataSet ->
+            dataSet
             |> Seq.map (kvPairToTuple >> DataSet.createFromTuple)
             |> List.ofSeq
             |> Metric.createMetric metric None None
             |> Some
         | _ ->
-            match metricsWithValues.TryGetValue metric with
-            | true, value ->
+            match metric with
+            | HasValue value ->
                 value
                 |> Metric.createSimpleMetric metric
                 |> Some

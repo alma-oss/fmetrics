@@ -43,6 +43,13 @@ module MetricName =
 
     let create = Name.create MetricName NameError
 
+    let createOrFail metricName =
+        metricName
+        |> create
+        |> function
+            | Ok metricName -> metricName
+            | Error e -> failwithf "Metric name %s is invalid. Error: %A" metricName e
+
 //
 // Metric Value
 //
@@ -137,11 +144,6 @@ module SimpleDataSet =
 
 type DataSetKey = DataSetKey of Label list
 
-module DataSetKey =
-    let empty = DataSetKey []
-
-    let labels (DataSetKey labels) = labels
-
 type DataSet = {
     Key: DataSetKey
     Value: MetricValue
@@ -150,6 +152,25 @@ type DataSet = {
 
 type DataSetError =
     | LabelError of LabelNameError
+
+module DataSetKey =
+    open ServiceIdentification
+
+    let empty = DataSetKey []
+
+    let labels (DataSetKey labels) = labels
+
+    let createFromInstance (instance: Instance) labels =
+        [
+            ("svc_domain", instance.Domain |> Domain.value)
+            ("svc_context", instance.Context |> Context.value)
+            ("svc_purpose", instance.Purpose |> Purpose.value)
+            ("svc_version", instance.Version |> Version.value)
+        ] @ labels
+        |> List.map Label.create
+        |> Result.sequence
+        |> Result.map DataSetKey
+        |> Result.mapError LabelError
 
 module DataSet =
     let createFromSimple (simpleDataSet: SimpleDataSet): Result<DataSet, DataSetError> =
