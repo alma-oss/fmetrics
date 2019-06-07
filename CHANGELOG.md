@@ -2,6 +2,10 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
+- [**BC**] Extend `ResourceAvailability`
+    - Add `Common` - common resource availability
+    - Add `Service` - resource availability for service (_identified by `Instance`_)
+    - Add `MultiTenantService` - resource availability for multi-tenant service (_identified by `Box`_)
 
 ## 2.0.0 - 2019-05-17
 - Add `createServiceDataSetKey` function to easy create a `DataSetKey` with `Instance`
