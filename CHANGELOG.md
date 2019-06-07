@@ -2,6 +2,8 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
+
+## 3.0.0 - 2019-06-07
 - [**BC**] Extend `ResourceAvailability`
     - Add `Common` - common resource availability
     - Add `Service` - resource availability for service (_identified by `Instance`_)
