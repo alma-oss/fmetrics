@@ -1,5 +1,7 @@
 namespace Metrics
 
+open ServiceIdentification
+
 type ResourceType = ResourceType of string
 
 module ResourceType =
@@ -15,12 +17,27 @@ type ResourceLocation = ResourceLocation of string
 module ResourceLocation =
     let value (ResourceLocation location) = location
 
-type ResourceAvailability = {
+type CommonResourceAvailability = {
     Type: ResourceType
     Identification: ResourceIdentification
     Location: ResourceLocation
     Audience: Audience
 }
+
+type ServiceResourceAvailability = {
+    ResourceAvailability: CommonResourceAvailability
+    Instance: Instance
+}
+
+type MultiTenantServiceResourceAvailability = {
+    ResourceAvailability: CommonResourceAvailability
+    Box: Box
+}
+
+type ResourceAvailability =
+    | Common of CommonResourceAvailability
+    | Service of ServiceResourceAvailability
+    | MultiTenantService of MultiTenantServiceResourceAvailability
 
 type ResourceAvailabilityState =
     | Available of ResourceAvailability
@@ -32,20 +49,73 @@ type ResourceStatus =
 
 module ResourceAvailability =
     let createFromStrings resourceType resourceIdentification resourceLocation audience =
-        {
+        Common {
             Type = ResourceType resourceType
             Identification = ResourceIdentification resourceIdentification
             Location = ResourceLocation resourceLocation
             Audience = audience
         }
 
-    let private createDataSetKey instance resourceAvailability =
+    let createForServiceFromStrings resourceType resourceIdentification resourceLocation instance audience =
+        Service {
+            ResourceAvailability = {
+                Type = ResourceType resourceType
+                Identification = ResourceIdentification resourceIdentification
+                Location = ResourceLocation resourceLocation
+                Audience = audience
+            }
+            Instance = instance
+        }
+
+    let createForMultiTenantServiceFromStrings resourceType resourceIdentification resourceLocation box audience =
+        MultiTenantService {
+            ResourceAvailability = {
+                Type = ResourceType resourceType
+                Identification = ResourceIdentification resourceIdentification
+                Location = ResourceLocation resourceLocation
+                Audience = audience
+            }
+            Box = box
+        }
+
+    let private commonResourceAvailability = function
+        | Common resourceAvailability -> resourceAvailability
+        | Service { ResourceAvailability = resourceAvailability } -> resourceAvailability
+        | MultiTenantService { ResourceAvailability = resourceAvailability } -> resourceAvailability
+
+    let private createInstanceKeys (instance: Instance) =
         [
-            ("res_location", resourceAvailability.Location |> ResourceLocation.value)
-            ("res_type", resourceAvailability.Type |> ResourceType.value)
-            ("res_identification", resourceAvailability.Identification |> ResourceIdentification.value)
-            ("audience", resourceAvailability.Audience |> Audience.value)
+            ("res_svc_domain", instance.Domain |> Domain.value)
+            ("res_svc_context", instance.Context |> Context.value)
+            ("res_svc_purpose", instance.Purpose |> Purpose.value)
+            ("res_svc_version", instance.Version |> Version.value)
         ]
+
+    let private createSpotKeys (spot: Spot) =
+        [
+            ("res_svc_zone", spot.Zone |> Zone.value)
+            ("res_svc_bucket", spot.Bucket |> Bucket.value)
+        ]
+
+    let private createDataSetKey instance resourceAvailability =
+        seq {
+            let common = resourceAvailability |> commonResourceAvailability
+
+            yield ("res_location", common.Location |> ResourceLocation.value)
+            yield ("res_type", common.Type |> ResourceType.value)
+            yield ("res_identification", common.Identification |> ResourceIdentification.value)
+
+            match resourceAvailability with
+            | Common _ -> ()
+            | Service { Instance = instance } ->
+                yield! instance |> createInstanceKeys
+            | MultiTenantService { Box = box } ->
+                yield! box |> Box.instance |> createInstanceKeys
+                yield! box |> Box.spot |> createSpotKeys
+
+            yield ("audience", common.Audience |> Audience.value)
+        }
+        |> Seq.toList
         |> DataSetKey.createFromInstance instance
 
     let private resourceAvailabilityMetric = "resource_availability" |> MetricName.createOrFail
