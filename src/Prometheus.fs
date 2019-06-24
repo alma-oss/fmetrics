@@ -278,7 +278,7 @@ module private Format =
     let private formatTimestamp (timestamp) =
         let toTimestamp (dateTime: DateTime) =
             // https://stackoverflow.com/questions/17632584/how-to-get-the-unix-timestamp-in-c-sharp
-            dateTime.Subtract(new DateTime(1970, 1, 1)).TotalSeconds
+            dateTime.Subtract(DateTime(1970, 1, 1)).TotalSeconds
             |> int
 
         timestamp

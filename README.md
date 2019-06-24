@@ -5,12 +5,18 @@ Library for showing app metrics for prometheus.
 See https://prometheus.io/docs/instrumenting/exposition_formats/ for more information about format itself
 
 ## Install
+
+Add following into `paket.dependencies`
 ```
-dotnet add package -s $NUGET_SERVER_PATH Lmc.Metrics
+git ssh://git@stash.int.lmc.cz:7999/archi/nuget-server.git master Packages: /nuget/
+# LMC Nuget dependencies:
+nuget Lmc.Metrics
 ```
-Where `$NUGET_SERVER_PATH` is the URL of nuget server
-- it should be http://development-nugetserver-common-stable.service.devel1-services.consul:31794 (_make sure you have a correct port, since it changes with deployment_)
-- see http://consul-1.infra.pprod/ui/devel1-services/services/development-nugetServer-common-stable for detailed information (and port)
+
+Add following into `paket.references`
+```
+Lmc.Metrics
+```
 
 ## Use
 
@@ -256,6 +262,7 @@ resource_availability {svc_domain="consents", svc_context="example", svc_purpose
 2. Update `CHANGELOG.md`
 3. Commit new version and tag it
 4. Run `$ fake build target release`
+5. Go to `nuget-server` repo, run `faket build target copyAll` and push new versions
 
 ## Development
 ### Requirements
