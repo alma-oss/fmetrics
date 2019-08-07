@@ -2,6 +2,9 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
+- Add `State` functions:
+    - `setMetricSetValue`
+    - `setMetricValue`
 
 ## 3.1.0 - 2019-06-26
 - Use lint

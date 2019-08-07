@@ -54,12 +54,8 @@ module State =
 
     let incrementMetricSetValue value metric setKey =
         match metric with
-        | HasDataSet dataSet ->
-            dataSet
-            |> addSetValue value setKey
-        | _ ->
-            value
-            |> createSetValue metric setKey
+        | HasDataSet dataSet -> addSetValue value setKey dataSet
+        | _ -> createSetValue metric setKey value
 
     let incrementMetricValue value metric =
         metricsWithValues.AddOrUpdate(
@@ -83,6 +79,20 @@ module State =
             | HasSetValue dataSet value when value = Int 0 -> ()
             | _ -> setSetValue (Int 0) setKey dataSet |> ignore
         | _ -> createSetValue metric setKey (Int 0) |> ignore
+
+    let setMetricSetValue value metric setKey =
+        match metric with
+        | HasDataSet dataSet -> setSetValue value setKey dataSet
+        | _ -> createSetValue metric setKey value
+        |> ignore
+
+    let setMetricValue value metric =
+        metricsWithValues.AddOrUpdate(
+            metric,
+            value,
+            fun _ _ -> value
+        )
+        |> ignore
 
     //
     // Read
