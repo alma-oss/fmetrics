@@ -12,6 +12,7 @@ type NameError =
     | EmptyName
     | TooShortName of int
 
+[<RequireQualifiedAccess>]
 module private Name =
     let value (Name name) = name
 
@@ -38,6 +39,7 @@ type MetricName = private MetricName of Name
 type MetricNameError =
     | NameError of NameError
 
+[<RequireQualifiedAccess>]
 module MetricName =
     let value (MetricName name) = name |> Name.value
 
@@ -83,6 +85,7 @@ type MetricType =
     | Summary
     | Untyped
 
+[<RequireQualifiedAccess>]
 module private MetricType =
     let value = function
         | Counter -> "counter"
@@ -100,6 +103,7 @@ type LabelName = private LabelName of Name
 type LabelNameError =
     | NameError of NameError
 
+[<RequireQualifiedAccess>]
 module private LabelName =
     let value (LabelName name) = name |> Name.value
 
@@ -110,6 +114,7 @@ type Label = {
     Value: string
 }
 
+[<RequireQualifiedAccess>]
 module Label =
     let create (name, value) =
         result {
@@ -131,6 +136,7 @@ type SimpleDataSet = {
     Timestamp: DateTime option
 }
 
+[<RequireQualifiedAccess>]
 module SimpleDataSet =
     let createWithTimestamp labels value timestamp =
         {
@@ -153,6 +159,7 @@ type DataSet = {
 type DataSetError =
     | LabelError of LabelNameError
 
+[<RequireQualifiedAccess>]
 module DataSetKey =
     open ServiceIdentification
 
@@ -172,6 +179,7 @@ module DataSetKey =
         |> Result.map DataSetKey
         |> Result.mapError LabelError
 
+[<RequireQualifiedAccess>]
 module DataSet =
     let createFromSimple (simpleDataSet: SimpleDataSet): Result<DataSet, DataSetError> =
         result {
@@ -217,6 +225,7 @@ type MetricError =
     | MetricNameError of MetricNameError
     | DataSetError of DataSetError
 
+[<RequireQualifiedAccess>]
 module MetricError =
     let private nameErrorValue field = function
         | EmptyName -> sprintf "%s name must not be empty!" field
@@ -236,6 +245,7 @@ module MetricError =
 // Implementation
 //
 
+[<RequireQualifiedAccess>]
 module private Format =
     let private noneIfEmpty string =
         if string |> String.IsNullOrEmpty then None
@@ -317,6 +327,7 @@ module private Format =
         |> String.concat ""
         |> sprintf "%s\n"
 
+[<RequireQualifiedAccess>]
 module Metric =
     let createMetric name description metricType dataSets =
         {

@@ -4,9 +4,11 @@ module ServiceStatus =
     type MarkAsEnabled = MarkAsEnabled of (unit -> unit)
     type MarkAsDisabled = MarkAsDisabled of (unit -> unit)
 
+    [<RequireQualifiedAccess>]
     module MarkAsEnabled =
         let execute (MarkAsEnabled f) = f()
 
+    [<RequireQualifiedAccess>]
     module MarkAsDisabled =
         let execute (MarkAsDisabled f) = f()
 

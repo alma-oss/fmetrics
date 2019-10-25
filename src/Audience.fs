@@ -1,6 +1,6 @@
 namespace Metrics
 
-[<RequireQualifiedAccessAttribute>]
+[<RequireQualifiedAccess>]
 type Audience =
     | Rad
     | Ict
@@ -24,6 +24,7 @@ type Audience =
     | Xslt
     | Atmoskop
 
+[<RequireQualifiedAccess>]
 module Audience =
     let value = function
         | Audience.Rad -> "rad"

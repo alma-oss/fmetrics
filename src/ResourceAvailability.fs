@@ -4,16 +4,19 @@ open ServiceIdentification
 
 type ResourceType = ResourceType of string
 
+[<RequireQualifiedAccess>]
 module ResourceType =
     let value (ResourceType resourceType) = resourceType
 
 type ResourceIdentification = ResourceIdentification of string
 
+[<RequireQualifiedAccess>]
 module ResourceIdentification =
     let value (ResourceIdentification identification) = identification
 
 type ResourceLocation = ResourceLocation of string
 
+[<RequireQualifiedAccess>]
 module ResourceLocation =
     let value (ResourceLocation location) = location
 
@@ -47,6 +50,7 @@ type ResourceStatus =
     | Up
     | Down
 
+[<RequireQualifiedAccess>]
 module ResourceAvailability =
     let createFromStrings resourceType resourceIdentification resourceLocation audience =
         Common {
