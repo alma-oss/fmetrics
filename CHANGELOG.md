@@ -2,6 +2,8 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
+
+## 3.3.0 - 2019-10-25
 - Add `[<RequireQualifiedAccess>]` to modules
 - Allow to run `WebServer` with `runStateAsync` with additional web server settings.
 

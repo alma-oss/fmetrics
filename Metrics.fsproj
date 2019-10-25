@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <OutputType>Library</OutputType>
     <PackageId>Lmc.Metrics</PackageId>
-    <Version>3.2.0</Version>
+    <Version>3.3.0</Version>
     <RepositoryUrl>https://stash.int.lmc.cz/projects/ARCHI/repos/fmetrics/browse</RepositoryUrl>
   </PropertyGroup>
 
