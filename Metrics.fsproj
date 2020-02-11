@@ -6,7 +6,7 @@
     <OutputType>Library</OutputType>
     <PackageId>Lmc.Metrics</PackageId>
     <Version>3.3.0</Version>
-    <RepositoryUrl>https://stash.int.lmc.cz/projects/ARCHI/repos/fmetrics/browse</RepositoryUrl>
+    <RepositoryUrl>https://bitbucket.lmc.cz/projects/ARCHI/repos/fmetrics/browse</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
