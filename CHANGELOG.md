@@ -4,6 +4,8 @@
 ## Unreleased
 - Change git host
 - Add `AssemblyInfo.fs`
+- Add `[<RequireQualifiedAccess>]` to `WebServer` module
+- Set `WebServer.statePart` function public
 
 ## 3.3.0 - 2019-10-25
 - Add `[<RequireQualifiedAccess>]` to modules
