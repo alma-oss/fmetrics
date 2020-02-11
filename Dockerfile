@@ -1,4 +1,4 @@
-FROM dcreg.service.consul/prod/development-dotnet-core-sdk-common:latest
+FROM dcreg.service.consul/prod/development-dotnet-core-sdk-common:2.2
 
 # build scripts
 COPY ./fake.sh /fmetrics/
@@ -10,6 +10,10 @@ COPY ./paket.lock /fmetrics/
 # sources
 COPY ./Metrics.fsproj /fmetrics/
 COPY ./src /fmetrics/src
+
+# others
+COPY ./.git /fmetrics/.git
+COPY ./CHANGELOG.md /fmetrics/
 
 WORKDIR /fmetrics
 
