@@ -5,6 +5,7 @@ open Suave.Filters
 open Suave.Operators
 open Suave.Successful
 
+[<RequireQualifiedAccess>]
 module WebServer =
     let private runAsync settings =
         let dockerBinding = HttpBinding.createSimple HTTP "0.0.0.0" 8080
@@ -14,7 +15,7 @@ module WebServer =
         |> startWebServerAsync config
         |> snd
 
-    let private statePart metricsPath getMetrics =
+    let statePart metricsPath getMetrics =
         GET >=> choose [
             path metricsPath
                 >=> request (getMetrics >> OK)
