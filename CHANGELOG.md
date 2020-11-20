@@ -2,8 +2,9 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
-- Use .netcore 3.1
+- [**BC**] Use .netcore 3.1
 - Update dependencies
+- [**BC**] Use `Lmc.Metrics` namespace
 
 ## 3.4.0 - 2020-02-11
 - Change git host

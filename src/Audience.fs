@@ -1,4 +1,4 @@
-namespace Metrics
+namespace Lmc.Metrics
 
 [<RequireQualifiedAccess>]
 type Audience =

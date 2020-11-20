@@ -5,12 +5,12 @@ NUGET
     Suave (2.5.6)
       FSharp.Core (>= 4.3.4)
   remote: paket-files/git_bitbucket.lmc.cz7999/archi/nuget-server/nuget
-    Lmc.ErrorHandling (2.2.0)
-      FSharp.Core (>= 4.7.1)
+    Lmc.ErrorHandling (3.0.0)
+      FSharp.Core (>= 5.0)
     Lmc.ServiceIdentification (4.0.0)
 GIT
   remote: ssh://git@bitbucket.lmc.cz:7999/archi/nuget-server.git
-     (9f4ea1a9194a0cf5d5ac8bd4f10aecdda0f1ca7c)
+     (90691a7c7a765a16c0756c9cd1b0c5da8a65fb3e)
       path: /nuget/
 GROUP Build
 STORAGE: NONE

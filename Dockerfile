@@ -1,24 +1,24 @@
 FROM dcreg.service.consul/dev/development-dotnet-core-sdk-common:3.1
 
 # build scripts
-COPY ./build.sh /fmetrics/
-COPY ./build.fsx /fmetrics/
-COPY ./paket.dependencies /fmetrics/
-COPY ./paket.references /fmetrics/
-COPY ./paket.lock /fmetrics/
+COPY ./build.sh /lib/
+COPY ./build.fsx /lib/
+COPY ./paket.dependencies /lib/
+COPY ./paket.references /lib/
+COPY ./paket.lock /lib/
 
 # sources
-COPY ./Metrics.fsproj /fmetrics/
-COPY ./src /fmetrics/src
+COPY ./Metrics.fsproj /lib/
+COPY ./src /lib/src
 
 # others
-COPY ./.config /fmetrics/.config
-COPY ./.git /fmetrics/.git
-COPY ./CHANGELOG.md /fmetrics/
+COPY ./.git /lib/.git
+COPY ./.config /lib/.config
+COPY ./CHANGELOG.md /lib/
 
-WORKDIR /fmetrics
+WORKDIR /lib
 
 RUN \
-    ./build.sh -t build no-clean
+    ./build.sh -t Build no-clean
 
 CMD ["./build.sh", "-t", "Tests", "no-clean"]

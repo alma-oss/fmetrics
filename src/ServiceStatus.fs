@@ -1,4 +1,4 @@
-namespace Metrics
+namespace Lmc.Metrics
 
 module ServiceStatus =
     type MarkAsEnabled = MarkAsEnabled of (unit -> unit)

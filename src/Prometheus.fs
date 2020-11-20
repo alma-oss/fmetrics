@@ -1,6 +1,7 @@
-namespace Metrics
+namespace Lmc.Metrics
 
 open System
+open Lmc.ErrorHandling
 
 //
 // Name

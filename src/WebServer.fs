@@ -1,4 +1,4 @@
-namespace Metrics
+namespace Lmc.Metrics
 
 open Suave
 open Suave.Filters

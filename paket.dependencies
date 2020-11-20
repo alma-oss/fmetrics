@@ -6,7 +6,7 @@ nuget Suave ~> 2.5
 
 git ssh://git@bitbucket.lmc.cz:7999/archi/nuget-server.git master Packages: /nuget/
 # LMC Nuget dependencies:
-nuget Lmc.ErrorHandling ~> 2.2
+nuget Lmc.ErrorHandling ~> 3.0
 nuget Lmc.ServiceIdentification ~> 4.0
 
 // [ FAKE GROUP ]
