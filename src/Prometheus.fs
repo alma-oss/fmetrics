@@ -161,7 +161,7 @@ type DataSetError =
 
 [<RequireQualifiedAccess>]
 module DataSetKey =
-    open ServiceIdentification
+    open Lmc.ServiceIdentification
 
     let empty = DataSetKey []
 

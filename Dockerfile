@@ -1,7 +1,7 @@
-FROM dcreg.service.consul/prod/development-dotnet-core-sdk-common:2.2
+FROM dcreg.service.consul/dev/development-dotnet-core-sdk-common:3.1
 
 # build scripts
-COPY ./fake.sh /fmetrics/
+COPY ./build.sh /fmetrics/
 COPY ./build.fsx /fmetrics/
 COPY ./paket.dependencies /fmetrics/
 COPY ./paket.references /fmetrics/
@@ -12,12 +12,13 @@ COPY ./Metrics.fsproj /fmetrics/
 COPY ./src /fmetrics/src
 
 # others
+COPY ./.config /fmetrics/.config
 COPY ./.git /fmetrics/.git
 COPY ./CHANGELOG.md /fmetrics/
 
 WORKDIR /fmetrics
 
 RUN \
-    ./fake.sh build target Build no-clean
+    ./build.sh -t build no-clean
 
-CMD ["./fake.sh", "build", "target", "Tests", "no-clean"]
+CMD ["./build.sh", "-t", "Tests", "no-clean"]

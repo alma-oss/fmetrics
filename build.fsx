@@ -14,7 +14,7 @@ type ToolDir =
     | Local of string
 
 // ========================================================================================================
-// === F# / Library fake build =============================================================== 2020-01-27 =
+// === F# / Library fake build ==================================================================== 1.1.0 =
 // --------------------------------------------------------------------------------------------------------
 // Options:
 //  - no-clean   - disables clean of dirs in the first step (required on CI)
@@ -80,7 +80,10 @@ module private DotnetCore =
             | Local dir -> sprintf "tool %s --tool-path ./%s %s" action dir tool
 
         match runInRoot (toolCommand "install") with
-        | { ExitCode = code } when code <> 0 -> runInRootOrFail (toolCommand "update")
+        | { ExitCode = code } when code <> 0 ->
+            match runInRoot (toolCommand "update") with
+            | { ExitCode = code } when code <> 0 -> Trace.tracefn "Warning: Install and update of %A has failed." tool
+            | _ -> ()
         | _ -> ()
 
     let execute command args (dir: string) =
@@ -157,7 +160,7 @@ Target.create "Build" (fun _ ->
 )
 
 Target.create "Lint" <| skipOn "no-lint" (fun _ ->
-    DotnetCore.installOrUpdateTool toolsDir "dotnet-fsharplint"
+    DotnetCore.installOrUpdateTool toolsDir "dotnet-fsharplint --version 0.16.5"
 
     let checkResult (messages: string list) =
         let rec check: string list -> unit = function
@@ -173,13 +176,14 @@ Target.create "Lint" <| skipOn "no-lint" (fun _ ->
         |> check
 
     !! "**/*.fsproj"
+    -- "example/**/*.*proj"
     |> Seq.map (fun fsproj ->
         match toolsDir with
         | Global ->
-            DotnetCore.runInRoot (sprintf "fsharplint -f %s" fsproj)
+            DotnetCore.runInRoot (sprintf "fsharplint lint %s" fsproj)
             |> fun (result: ProcessResult) -> result.Messages
         | Local dir ->
-            DotnetCore.execute "dotnet-fsharplint" ["-f"; fsproj] dir
+            DotnetCore.execute "dotnet-fsharplint" ["lint"; fsproj] dir
             |> fst
             |> tee (Trace.tracefn "%s")
             |> String.split '\n'
