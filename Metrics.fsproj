@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <OutputType>Library</OutputType>
     <PackageId>Lmc.Metrics</PackageId>
-    <Version>3.4.0</Version>
+    <Version>4.0.0</Version>
     <RepositoryUrl>https://bitbucket.lmc.cz/projects/ARCHI/repos/fmetrics/browse</RepositoryUrl>
   </PropertyGroup>
 
