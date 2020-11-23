@@ -1,6 +1,7 @@
-namespace Metrics
+namespace Lmc.Metrics
 
 open System
+open Lmc.ErrorHandling
 
 //
 // Name
@@ -161,7 +162,7 @@ type DataSetError =
 
 [<RequireQualifiedAccess>]
 module DataSetKey =
-    open ServiceIdentification
+    open Lmc.ServiceIdentification
 
     let empty = DataSetKey []
 

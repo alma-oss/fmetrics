@@ -1,4 +1,4 @@
-namespace Metrics
+namespace Lmc.Metrics
 
 module State =
     open System.Collections.Generic

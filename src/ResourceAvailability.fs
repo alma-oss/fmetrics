@@ -1,6 +1,6 @@
-namespace Metrics
+namespace Lmc.Metrics
 
-open ServiceIdentification
+open Lmc.ServiceIdentification
 
 type ResourceType = ResourceType of string
 
