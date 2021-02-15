@@ -1,16 +1,17 @@
 RESTRICTION: == net50
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    FSharp.Core (5.0)
+    FSharp.Core (5.0.1)
     Suave (2.5.6)
       FSharp.Core (>= 4.3.4)
   remote: paket-files/git_bitbucket.lmc.cz7999/archi/nuget-server/nuget
-    Lmc.ErrorHandling (4.0.0)
+    Lmc.ErrorHandling (5.0.0)
       FSharp.Core (>= 5.0)
-    Lmc.ServiceIdentification (5.0.0)
+    Lmc.ServiceIdentification (5.2.0)
+      FSharp.Core (>= 5.0)
 GIT
   remote: ssh://git@bitbucket.lmc.cz:7999/archi/nuget-server.git
-     (cdbac5c2023098cc3e99f4ad9b5b50ae44ff9d14)
+     (9ce48a98607b5450fb273ac95b2494ba273196e1)
       path: /nuget/
 GROUP Build
 STORAGE: NONE
