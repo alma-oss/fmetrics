@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <OutputType>Library</OutputType>
     <PackageId>Lmc.Metrics</PackageId>
     <Version>5.1.0</Version>
@@ -15,7 +15,6 @@
 
   <ItemGroup>
     <Compile Include="src/Audience.fs" />
-    <Compile Include="src/WebServer.fs" />
     <Compile Include="src/Prometheus.fs" />
     <Compile Include="src/State.fs" />
     <Compile Include="src/ResourceAvailability.fs" />

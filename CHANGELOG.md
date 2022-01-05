@@ -2,6 +2,8 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
+- [**BC**] Use net6.0
+- [**BC**] Remove `Webserver`
 
 ## 5.1.0 - 2021-02-15
 - Update dependencies
