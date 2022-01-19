@@ -20,7 +20,13 @@ module private Name =
     let create nameConstructor liftError (name: string) =
         if name |> String.IsNullOrEmpty then EmptyName |> liftError |> Error
         elif name.Length < 2 then (TooShortName 2) |> liftError |> Error
-        else name |> Name |> nameConstructor |> Ok
+        else
+            name
+                .Replace("-", "_")
+                .Replace(" ", "_")
+            |> Name
+            |> nameConstructor
+            |> Ok
 
 // Metric Format
 // ================
