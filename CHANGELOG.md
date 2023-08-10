@@ -2,6 +2,8 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
+
+## 7.0.0 - 2023-08-10
 - Add `Audience.PrivacyComponents` case
 - [**BC**] Use net 7.0
 
