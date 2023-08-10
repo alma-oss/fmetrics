@@ -2,6 +2,8 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
+- Add `Audience.PrivacyComponents` case
+- [**BC**] Use net 7.0
 
 ## 6.1.0 - 2022-01-19
 - Normalize Prometheus names

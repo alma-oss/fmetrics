@@ -2,6 +2,7 @@ namespace Lmc.Metrics
 
 [<RequireQualifiedAccess>]
 type Audience =
+    | PrivacyComponents
     | Rad
     | Ict
     | SharedCompresCd
@@ -27,6 +28,7 @@ type Audience =
 [<RequireQualifiedAccess>]
 module Audience =
     let value = function
+        | Audience.PrivacyComponents -> "privacy-components"
         | Audience.Rad -> "rad"
         | Audience.Ict -> "ict"
         | Audience.SharedCompresCd -> "shared-compres_cd"
