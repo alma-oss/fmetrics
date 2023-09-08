@@ -8,14 +8,20 @@ See https://prometheus.io/docs/instrumenting/exposition_formats/ for more inform
 
 Add following into `paket.dependencies`
 ```
-git ssh://git@bitbucket.lmc.cz:7999/archi/nuget-server.git master Packages: /nuget/
+source https://nuget.pkg.github.com/almacareer/index.json username: "%PRIVATE_FEED_USER%" password: "%PRIVATE_FEED_PASS%"
 # LMC Nuget dependencies:
-nuget Lmc.Metrics
+nuget Alma.Metrics
+```
+
+NOTE: For local development, you have to create ENV variables with your github personal access token.
+```sh
+export PRIVATE_FEED_USER='{GITHUB USERNANME}'
+export PRIVATE_FEED_PASS='{TOKEN}'	# with permissions: read:packages
 ```
 
 Add following into `paket.references`
 ```
-Lmc.Metrics
+Alma.Metrics
 ```
 
 ## Use
@@ -24,7 +30,7 @@ Lmc.Metrics
 _With error handling_
 
 ```fs
-open Metrics
+open Alma.Metrics
 
 result {
     let! metric =
@@ -47,7 +53,7 @@ simple_metric 42
 _With error handling_
 
 ```fs
-open Metrics
+open Alma.Metrics
 
 result {
     let! metric =
@@ -76,7 +82,7 @@ simple_metric 42
 _With error handling_
 
 ```fs
-open Metrics
+open Alma.Metrics
 
 result {
     let! metric =
@@ -121,7 +127,7 @@ There are many constructors (`create` functions) for every metric part (`Metric`
 _With error handling_
 
 ```fs
-open Metrics
+open Alma.Metrics
 
 // PART 1: helper function for creating your specific data set key
 let createMonthYearKey month year =
@@ -180,7 +186,7 @@ metric_with_state {month="2", year="2018"} +Inf
 If you need metric labels based by `Instance`, you can use shortcut function to do that. _Otherwise it is same as above._
 
 ```fs
-open Metrics
+open Alma.Metrics
 
 let createKeyForInputEvent instance (InputStreamName (StreamName inputStream)) (event: RawEvent) =
     [
@@ -195,8 +201,8 @@ Service metrics (see [confluence](https://confluence.int.lmc.cz/display/ARCH/Ser
 
 ### Metric `service_status`
 ```fs
-open Metrics
-open ServiceIdentification
+open Alma.ServiceIdentification
+open Alma.Metrics
 
 let instance = {
     Domain = Domain "consents"
@@ -226,8 +232,8 @@ service_status {svc_domain="consents", svc_context="example", svc_purpose="commo
 
 ### Metric `resource_availability`
 ```fs
-open Metrics
-open ServiceIdentification
+open Alma.ServiceIdentification
+open Alma.Metrics
 
 let instance = {
     Domain = Domain "consents"
@@ -258,23 +264,20 @@ resource_availability {svc_domain="consents", svc_context="example", svc_purpose
 ```
 
 ## Release
-1. Increment version in `Metrics.fsproj`
+1. Increment version in `ServiceIdentification.fsproj`
 2. Update `CHANGELOG.md`
 3. Commit new version and tag it
-4. Run `$ fake build target release`
-5. Go to `nuget-server` repo, run `faket build target copyAll` and push new versions
 
 ## Development
 ### Requirements
 - [dotnet core](https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial)
-- [FAKE](https://fake.build/fake-gettingstarted.html)
 
 ### Build
 ```bash
-fake build
+./build.sh build
 ```
 
-### Watch
+### Tests
 ```bash
-fake build target watch
+./build.sh -t tests
 ```
