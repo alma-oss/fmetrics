@@ -1,7 +1,7 @@
-namespace Lmc.Metrics
+namespace Alma.Metrics
 
 open System
-open Lmc.ErrorHandling
+open Alma.ErrorHandling
 
 //
 // Name
@@ -162,7 +162,7 @@ type DataSetError =
 
 [<RequireQualifiedAccess>]
 module DataSetKey =
-    open Lmc.ServiceIdentification
+    open Alma.ServiceIdentification
 
     let empty = DataSetKey []
 
