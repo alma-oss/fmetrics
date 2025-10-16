@@ -2,6 +2,7 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
+- Fix formatting the `Float` value
 
 ## 10.1.0 - 2025-03-17
 - Update dependencies

@@ -281,7 +281,9 @@ module private Format =
 
     let private formatValue = function
         | Int int -> int.ToString()
-        | Float float -> float.ToString().TrimEnd('0')
+        | Float float ->
+            let str = float.ToString()
+            if str.Contains('.') then str.TrimEnd('0').TrimEnd('.') else str
         | Infinite -> "+Inf"
         | NegativeInfinite -> "-Inf"
         | NotANumber -> "Nan"
