@@ -2,6 +2,7 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
+- Move repository
 
 ## 10.1.1 - 2025-10-16
 - Fix formatting the `Float` value

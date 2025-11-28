@@ -1,23 +1,14 @@
 F-Metrics
 =========
 
+[![NuGet](https://img.shields.io/nuget/v/Alma.Metrics.svg)](https://www.nuget.org/packages/Alma.Metrics)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Alma.Metrics.svg)](https://www.nuget.org/packages/Alma.Metrics)
+[![Tests](https://github.com/alma-oss/fmetrics/actions/workflows/tests.yaml/badge.svg)](https://github.com/alma-oss/fmetrics/actions/workflows/tests.yaml)
+
 Library for showing app metrics for prometheus.
 See https://prometheus.io/docs/instrumenting/exposition_formats/ for more information about format itself
 
 ## Install
-
-Add following into `paket.dependencies`
-```
-source https://nuget.pkg.github.com/almacareer/index.json username: "%PRIVATE_FEED_USER%" password: "%PRIVATE_FEED_PASS%"
-# LMC Nuget dependencies:
-nuget Alma.Metrics
-```
-
-NOTE: For local development, you have to create ENV variables with your github personal access token.
-```sh
-export PRIVATE_FEED_USER='{GITHUB USERNANME}'
-export PRIVATE_FEED_PASS='{TOKEN}'	# with permissions: read:packages
-```
 
 Add following into `paket.references`
 ```
@@ -201,7 +192,7 @@ Service metrics (see [confluence](https://confluence.int.lmc.cz/display/ARCH/Ser
 
 ### Metric `service_status`
 ```fs
-open Alma.ServiceIdentification
+open Alma.Metrics
 open Alma.Metrics
 
 let instance = {
@@ -232,7 +223,7 @@ service_status {svc_domain="consents", svc_context="example", svc_purpose="commo
 
 ### Metric `resource_availability`
 ```fs
-open Alma.ServiceIdentification
+open Alma.Metrics
 open Alma.Metrics
 
 let instance = {
@@ -264,7 +255,7 @@ resource_availability {svc_domain="consents", svc_context="example", svc_purpose
 ```
 
 ## Release
-1. Increment version in `ServiceIdentification.fsproj`
+1. Increment version in `Metrics.fsproj`
 2. Update `CHANGELOG.md`
 3. Commit new version and tag it
 

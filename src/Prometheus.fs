@@ -1,7 +1,7 @@
 namespace Alma.Metrics
 
 open System
-open Alma.ErrorHandling
+open Feather.ErrorHandling
 
 //
 // Name
