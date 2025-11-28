@@ -1,12 +1,11 @@
 RESTRICTION: == net9.0
 NUGET
-  remote: https://nuget.pkg.github.com/almacareer/index.json
-    Alma.ErrorHandling (10.0.0)
-      FSharp.Core (>= 9.0.201 < 10.0)
-    Alma.ServiceIdentification (10.0.0)
-      FSharp.Core (>= 9.0.201 < 10.0)
   remote: https://api.nuget.org/v3/index.json
-    FSharp.Core (9.0.201)
+    Alma.ServiceIdentification (10.1)
+      FSharp.Core (>= 9.0.201 < 10.0)
+    Feather.ErrorHandling (1.0)
+      FSharp.Core (>= 9.0.201 < 10.0)
+    FSharp.Core (9.0.303)
 
 GROUP Build
 STORAGE: NONE
