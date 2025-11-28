@@ -2,6 +2,8 @@
 
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
+
+## 11.0.0 - 2025-11-28
 - Move repository
 
 ## 10.1.1 - 2025-10-16
