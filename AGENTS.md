@@ -1,5 +1,9 @@
 # AGENTS.md — Alma.Metrics
 
+## Agent Skills
+
+This repo ships Agent Skill for the `Alma.Metrics` library. Compatible agents discover it automatically; see `.agents/skills/fmetrics/SKILL.md`.
+
 ## Project Purpose
 
 F# library for creating and formatting application metrics in Prometheus exposition format. Supports simple metrics, labeled data sets, histograms, summaries, and service status/resource availability tracking. Published as NuGet package `Alma.Metrics`.
