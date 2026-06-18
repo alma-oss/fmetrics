@@ -193,7 +193,6 @@ Service metrics (see [confluence](https://confluence.int.lmc.cz/display/ARCH/Ser
 ### Metric `service_status`
 ```fs
 open Alma.Metrics
-open Alma.Metrics
 
 let instance = {
     Domain = Domain "consents"
@@ -224,7 +223,6 @@ service_status {svc_domain="consents", svc_context="example", svc_purpose="commo
 ### Metric `resource_availability`
 ```fs
 open Alma.Metrics
-open Alma.Metrics
 
 let instance = {
     Domain = Domain "consents"
@@ -253,6 +251,159 @@ Formatted Metric:
 resource_availability {svc_domain="consents", svc_context="example", svc_purpose="common", svc_version="stable", res_location="kfall-1.dev1.services.lmc", res_type="kafka-cluster", res_identification="kfall-1.dev1.services.lmc", audience="sys"} 1
 resource_availability {svc_domain="consents", svc_context="example", svc_purpose="common", svc_version="stable", res_location="kfall-1.dev1.services.lmc", res_type="kafka-topic", res_identification="consents-consentorStream-common-all", audience="sys"} 1
 ```
+
+### Histogram metric
+
+#### How histograms differ from labeled counters
+
+A common pattern before using histograms is to manually bucket observations using labeled counters — for example, a `request_duration` counter with labels like `<500ms`, `<1s`, `<5s`, `>5s`, incrementing the matching label on each request.
+
+Histograms work the same way conceptually, with two key differences:
+
+**1. Buckets are cumulative, not exclusive.**
+Each bucket counts all observations *up to* that bound, not just those that fall exactly in that range:
+
+```
+request_duration_bucket{le="0.5"}  10   ← ≤ 500ms
+request_duration_bucket{le="1"}    11   ← ≤ 1s  (includes the ≤ 500ms ones)
+request_duration_bucket{le="5"}    12   ← ≤ 5s  (includes all above)
+request_duration_bucket{le="+Inf"} 12   ← everything (always equals total count)
+```
+
+The last bucket is always `le="+Inf"`. It is mandatory — `histogram_quantile` in Prometheus requires it to compute percentiles. There is no separate `> last_bound` bucket because it is always derivable as `+Inf count - last named bucket count`. To query "how many took over 5s":
+
+```promql
+rate(request_duration_bucket{le="+Inf"}[5m])
+- rate(request_duration_bucket{le="5"}[5m])
+```
+
+**2. You pass raw values instead of routing to a label.**
+Instead of deciding which bucket a value belongs to yourself, you pass the raw observed value and the library places it into the correct buckets automatically.
+
+**3. You also get `_sum` and `_count` for free**, enabling average calculation: `sum / count`.
+
+---
+
+_With error handling_
+
+```fs
+open Alma.Metrics
+
+result {
+    let buckets =
+        HistogramBuckets.create [ 0.005; 0.01; 0.025; 0.05; 0.1; 0.25; 0.5; 1.0; 2.5; 5.0; 10.0 ]
+
+    let simpleDataSet =
+        SimpleHistogramDataSet.create
+            [ ("endpoint", "/api/consents") ]
+            buckets
+            [ 0.012; 0.024; 0.17; 0.42 ]
+
+    let! histogram =
+        [ simpleDataSet ]
+        |> Histogram.createWithSimpleDataSets
+            "http_request_duration_seconds"
+            (Some "HTTP request duration in seconds.")
+
+    return histogram |> Histogram.format
+}
+|> function
+    | Ok formatted -> printfn "%s" formatted
+    | Error error -> failwithf "Error: %A" error
+```
+
+Formatted Metric:
+```
+# HELP http_request_duration_seconds HTTP request duration in seconds.
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.005"} 0
+http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.01"} 0
+http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.025"} 2
+http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.05"} 2
+http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.1"} 2
+http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.25"} 3
+http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.5"} 4
+http_request_duration_seconds_bucket {endpoint="/api/consents", le="1"} 4
+http_request_duration_seconds_bucket {endpoint="/api/consents", le="2.5"} 4
+http_request_duration_seconds_bucket {endpoint="/api/consents", le="5"} 4
+http_request_duration_seconds_bucket {endpoint="/api/consents", le="10"} 4
+http_request_duration_seconds_bucket {endpoint="/api/consents", le="+Inf"} 4
+http_request_duration_seconds_sum {endpoint="/api/consents"} 0.626
+http_request_duration_seconds_count {endpoint="/api/consents"} 4
+```
+
+### Histogram with state
+_With error handling_
+
+```fs
+open Alma.Metrics
+
+// PART 1: define your buckets and the histogram metric
+let buckets =
+    match HistogramBuckets.create [ 0.005; 0.01; 0.025; 0.05; 0.1; 0.25; 0.5; 1.0; 2.5; 5.0; 10.0 ] with
+    | Ok validBuckets -> validBuckets
+    | Error error -> failwithf "%A" error
+
+let histogramMetric =
+    match HistogramMetric.create "http_request_duration_seconds" buckets with
+    | Ok validMetric -> validMetric
+    | Error error -> failwithf "%A" error
+
+// PART 2: helper function for creating your specific data set key
+let createEndpointKey endpoint =
+    [ ("endpoint", endpoint) ]
+    |> List.map Label.create
+    |> Result.sequence
+    |> Result.map DataSetKey
+    |> function
+        | Ok key -> key
+        | Error error -> failwithf "%A" error
+
+// PART 3: observe values into the histogram (e.g. after handling a request)
+let endpointKey = createEndpointKey "/api/consents"
+
+State.observeHistogramSetValue histogramMetric 0.012 endpointKey
+State.observeHistogramSetValue histogramMetric 0.024 endpointKey
+State.observeHistogramSetValue histogramMetric 0.17 endpointKey
+State.observeHistogramSetValue histogramMetric 0.42 endpointKey
+
+// PART 4: print current state for your metric (e.g. when your /metrics endpoint is scraped)
+match State.getHistogram histogramMetric with
+| Some histogram ->
+    { histogram with
+        Description = Some "HTTP request duration in seconds."
+    }
+    |> Histogram.format
+    |> printfn "%s"
+| None -> ()
+```
+_NOTE: All parts from the above example would probably be in the different parts of the application, so it is separated also in the example._
+
+## Registry
+
+By default all state functions (`State`, `ServiceStatus`, `ResourceAvailability`) write to and read from a shared process-global registry — the normal Prometheus single-endpoint model.
+
+For test isolation or multiple independent metric scopes, create an explicit `Registry` and use the `*In` variants:
+
+```fs
+open Alma.Metrics
+
+let reg = Registry.create ()
+
+// Write into the isolated registry
+State.setMetricValueIn reg (Int 42) metricName
+State.observeHistogramSetValueIn reg histogramMetric 0.5 key
+ResourceAvailability.enableIn reg instance kafkaClusterResource |> ignore
+ServiceStatus.markAsEnabledIn reg instance Audience.Sys |> ignore
+
+// Read from it
+State.getMetricIn reg metricName
+State.getHistogramsIn reg ()
+ResourceAvailability.getFormattedValueIn reg ()
+ServiceStatus.getFormattedValueIn reg ()
+```
+
+The original functions (`State.setMetricValue`, `ResourceAvailability.enable`, etc.) remain unchanged and still target the default registry.
 
 ## Release
 1. Increment version in `Metrics.fsproj`
