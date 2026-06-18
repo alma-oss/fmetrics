@@ -3,6 +3,7 @@
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
 
+- [**BC**] Replace fixed `Audience` enum cases with `Audience of string`
 - Add explicit `Registry` support for test isolation and multiple metric scopes
     - Add `Registry` type and `Registry.create ()` factory
     - Add `Registry.defaultRegistry` (the implicit process-global registry used by all existing functions)

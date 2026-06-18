@@ -202,7 +202,7 @@ let instance = {
 }
 
 let exampleServiceStatus = {
-    Audience = Audience.Arch
+    Audience = Audience "arch"
 }
 
 exampleServiceStatus
@@ -231,8 +231,8 @@ let instance = {
     Version = Version "stable"
 }
 
-let kafkaClusterResource = ResourceAvailability.createFromStrings "kafka-cluster" "kfall-1.dev1.services.lmc" "kfall-1.dev1.services.lmc" Audience.Sys
-let kafkaTopicResource = ResourceAvailability.createFromStrings "kafka-topic" "consents-consentorStream-common-all" "kfall-1.dev1.services.lmc" Audience.Sys
+let kafkaClusterResource = ResourceAvailability.createFromStrings "kafka-cluster" "kfall-1.dev1.services.lmc" "kfall-1.dev1.services.lmc" (Audience "sys")
+let kafkaTopicResource = ResourceAvailability.createFromStrings "kafka-topic" "consents-consentorStream-common-all" "kfall-1.dev1.services.lmc" (Audience "sys")
 
 [
     kafkaClusterResource
@@ -394,7 +394,7 @@ let reg = Registry.create ()
 State.setMetricValueIn reg (Int 42) metricName
 State.observeHistogramSetValueIn reg histogramMetric 0.5 key
 ResourceAvailability.enableIn reg instance kafkaClusterResource |> ignore
-ServiceStatus.markAsEnabledIn reg instance Audience.Sys |> ignore
+ServiceStatus.markAsEnabledIn reg instance (Audience "sys") |> ignore
 
 // Read from it
 State.getMetricIn reg metricName

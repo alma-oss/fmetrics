@@ -131,7 +131,7 @@ let statefulTests =
                 let reg = Registry.create ()
 
                 let markEnabled =
-                    ServiceStatus.markAsEnabledIn reg instance Audience.Sys
+                    ServiceStatus.markAsEnabledIn reg instance (Audience "sys")
                     |> okOrFail
 
                 let (ServiceStatus.MarkAsEnabled enableFn) = markEnabled
@@ -148,11 +148,11 @@ let statefulTests =
                 let reg = Registry.create ()
 
                 let markEnabled =
-                    ServiceStatus.markAsEnabledIn reg instance Audience.Sys
+                    ServiceStatus.markAsEnabledIn reg instance (Audience "sys")
                     |> okOrFail
 
                 let markDisabled =
-                    ServiceStatus.markAsDisabledIn reg instance Audience.Sys
+                    ServiceStatus.markAsDisabledIn reg instance (Audience "sys")
                     |> okOrFail
 
                 let (ServiceStatus.MarkAsEnabled enableFn) = markEnabled
@@ -178,7 +178,7 @@ let statefulTests =
                         "db"
                         "dc1"
                         testBox
-                        Audience.Sys
+                        (Audience "sys")
 
                 match ResourceAvailability.enableIn reg instance resource with
                 | Error e -> failtestf "Enable should succeed, got %A" e
@@ -200,7 +200,7 @@ let statefulTests =
                         "redis"
                         "cache-01"
                         "eu-west"
-                        Audience.Sys
+                        (Audience "sys")
 
                 match ResourceAvailability.enableIn reg instance resource with
                 | Error e -> failtestf "Enable should succeed, got %A" e
@@ -219,7 +219,7 @@ let statefulTests =
                         "db-primary"
                         "us-east"
                         instance
-                        Audience.Sys
+                        (Audience "sys")
 
                 match ResourceAvailability.enableIn reg instance resource with
                 | Error e -> failtestf "Enable should succeed, got %A" e
@@ -237,7 +237,7 @@ let statefulTests =
                         "broker-1"
                         "dc2"
                         testBox
-                        Audience.Sys
+                        (Audience "sys")
 
                 ResourceAvailability.enableIn reg instance resource |> ignore
 
