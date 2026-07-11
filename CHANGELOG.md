@@ -4,6 +4,7 @@
 ## Unreleased
 
 - [**BC**] Replace fixed `Audience` enum cases with `Audience of string`
+- [**BC**] Use `DateTimeOffset` instead of `DateTime` for `Timestamp` fields on `SimpleDataSet`, `SimpleHistogramDataSet`, `DataSet`, and `HistogramDataSet`
 - Add explicit `Registry` support for test isolation and multiple metric scopes
     - Add `Registry` type and `Registry.create ()` factory
     - Add `Registry.defaultRegistry` (the implicit process-global registry used by all existing functions)
@@ -14,7 +15,7 @@
     - Add histogram state APIs for observation and retrieval: `State.observeHistogramSetValue`, `State.getHistogram`, and `State.getHistograms`.
     - Add simple histogram data set creation (`SimpleHistogramDataSet`, `Histogram.createWithSimpleDataSets`) so observations can be converted to histogram buckets inside the library.
     - Add histogram bucket configuration support via `HistogramBuckets`
- 
+
 ## 12.0.0 - 2026-01-28
 - [**BC**] Use net10.0
 

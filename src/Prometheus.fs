@@ -213,7 +213,7 @@ module Label =
 type SimpleDataSet = {
     Key: (string * string) list
     Value: MetricValue
-    Timestamp: DateTime option
+    Timestamp: DateTimeOffset option
 }
 
 [<RequireQualifiedAccess>]
@@ -232,7 +232,7 @@ type SimpleHistogramDataSet = {
     Key: (string * string) list
     Buckets: HistogramBuckets
     Observations: float list
-    Timestamp: DateTime option
+    Timestamp: DateTimeOffset option
 }
 
 [<RequireQualifiedAccess>]
@@ -253,7 +253,7 @@ type DataSetKey = DataSetKey of Label list
 type DataSet = {
     Key: DataSetKey
     Value: MetricValue
-    Timestamp: DateTime option
+    Timestamp: DateTimeOffset option
 }
 
 type HistogramBucket = {
@@ -266,7 +266,7 @@ type HistogramDataSet = {
     Buckets: HistogramBucket list
     Sum: float
     Count: int
-    Timestamp: DateTime option
+    Timestamp: DateTimeOffset option
 }
 
 type DataSetError =
@@ -444,14 +444,13 @@ module private Format =
         | NegativeInfinite -> "-Inf"
         | NotANumber -> "Nan"
 
-    let private formatTimestamp (timestamp) =
-        let toTimestamp (dateTime: DateTime) =
-            // https://stackoverflow.com/questions/17632584/how-to-get-the-unix-timestamp-in-c-sharp
-            dateTime.Subtract(DateTime(1970, 1, 1)).TotalSeconds
-            |> int
+    let private formatTimestamp timestamp=
+        let toTimestamp (dateTime: DateTimeOffset) =
+            dateTime.ToUnixTimeSeconds()
+            |> string
 
         timestamp
-        |> Option.map (toTimestamp >> string)
+        |> Option.map toTimestamp
 
     let private formatDataSet nameValue (dataSet: DataSet) =
         [

@@ -336,7 +336,7 @@ let prometheusPureTests =
                 Expect.stringEnds formatted "\n" "Format should end with newline"
 
             testCase "should format unix timestamp when dataset has timestamp" <| fun _ ->
-                let ts = DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                let ts = DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero)
                 let dataSet =
                     SimpleDataSet.createWithTimestamp [] (Int 42) (Some ts)
                     |> DataSet.createFromSimple
