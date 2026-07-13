@@ -3,6 +3,8 @@
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
 
+## 13.0.0 - 2026-07-13
+
 - [**BC**] Replace fixed `Audience` enum cases with `Audience of string`
 - [**BC**] Use `DateTimeOffset` instead of `DateTime` for `Timestamp` fields on `SimpleDataSet`, `SimpleHistogramDataSet`, `DataSet`, and `HistogramDataSet`
 - Add explicit `Registry` support for test isolation and multiple metric scopes
