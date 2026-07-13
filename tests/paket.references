@@ -1,0 +1,5 @@
+group Tests
+    Expecto
+    Expecto.FsCheck
+    FsCheck
+    YoloDev.Expecto.TestSdk

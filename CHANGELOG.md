@@ -3,6 +3,19 @@
 <!-- There is always Unreleased section on the top. Subsections (Add, Changed, Fix, Removed) should be Add as needed. -->
 ## Unreleased
 
+- [**BC**] Replace fixed `Audience` enum cases with `Audience of string`
+- [**BC**] Use `DateTimeOffset` instead of `DateTime` for `Timestamp` fields on `SimpleDataSet`, `SimpleHistogramDataSet`, `DataSet`, and `HistogramDataSet`
+- Add explicit `Registry` support for test isolation and multiple metric scopes
+    - Add `Registry` type and `Registry.create ()` factory
+    - Add `Registry.defaultRegistry` (the implicit process-global registry used by all existing functions)
+    - Add `*In registry` variants for all `State`, `ResourceAvailability`, and `ServiceStatus` functions (`State.getMetricIn`, `State.observeHistogramSetValueIn`, `ResourceAvailability.enableIn`, `ServiceStatus.markAsEnabledIn`, etc.)
+    - Existing functions without a registry argument are unchanged and delegate to the default registry
+- Add histogram metrics support
+    - Add Prometheus histogram output formatting (`_bucket`, `_sum`, `_count`) with `Histogram` domain types and formatter.
+    - Add histogram state APIs for observation and retrieval: `State.observeHistogramSetValue`, `State.getHistogram`, and `State.getHistograms`.
+    - Add simple histogram data set creation (`SimpleHistogramDataSet`, `Histogram.createWithSimpleDataSets`) so observations can be converted to histogram buckets inside the library.
+    - Add histogram bucket configuration support via `HistogramBuckets`
+
 ## 12.0.0 - 2026-01-28
 - [**BC**] Use net10.0
 

@@ -17,16 +17,29 @@ type NameError =
 module private Name =
     let value (Name name) = name
 
+    let private normalize (name: string) =
+        name
+            .Replace("-", "_")
+            .Replace(" ", "_")
+
     let create nameConstructor liftError (name: string) =
         if name |> String.IsNullOrEmpty then EmptyName |> liftError |> Error
         elif name.Length < 2 then (TooShortName 2) |> liftError |> Error
         else
             name
-                .Replace("-", "_")
-                .Replace(" ", "_")
+            |> normalize
             |> Name
             |> nameConstructor
             |> Ok
+
+    let private map f (Name name) =
+        name
+        |> f
+        |> normalize
+        |> Name
+
+    let internal withSuffix suffix =
+        map (fun name -> sprintf "%s%s" name suffix)
 
 // Metric Format
 // ================
@@ -52,6 +65,14 @@ module MetricName =
 
     let create = Name.create MetricName NameError
     let createOrFail = create >> Result.orFail
+
+    let private map f (MetricName name) =
+        name
+        |> f
+        |> MetricName
+
+    let internal withSuffix suffix =
+        map (Name.withSuffix suffix)
 
 //
 // Metric Value
@@ -79,6 +100,12 @@ type MetricValue =
         | NotANumber, value
         | value, NotANumber -> value
 
+[<RequireQualifiedAccess>]
+module internal HistogramBound =
+    let toMetricValue bound =
+        if Double.IsPositiveInfinity bound then Infinite
+        else Float bound
+
 type MetricType =
     | Counter
     | Gauge
@@ -94,6 +121,58 @@ module private MetricType =
         | Histogram -> "histogram"
         | Summary -> "summary"
         | Untyped -> "untyped"
+
+type HistogramBuckets = private HistogramBuckets of float list
+
+[<RequireQualifiedAccess>]
+module HistogramBuckets =
+    let private normalize bounds =
+        let normalizedBounds =
+            bounds
+            |> List.filter (fun bound ->
+                not (Double.IsNaN bound)
+                && not (Double.IsInfinity bound)
+            )
+            |> List.sort
+            |> List.distinct
+
+        normalizedBounds @ [ Double.PositiveInfinity ]
+
+    let create bounds =
+        bounds
+        |> normalize
+        |> HistogramBuckets
+
+    let value (HistogramBuckets bounds) = bounds
+
+type HistogramMetric = {
+    Name: MetricName
+    Buckets: HistogramBuckets
+}
+
+[<RequireQualifiedAccess>]
+module HistogramMetric =
+    let createHistogramMetric name buckets =
+        {
+            Name = name
+            Buckets = buckets
+        }
+
+    let create name buckets =
+        result {
+            let! name' =
+                name
+                |> MetricName.create
+
+            return createHistogramMetric name' buckets
+        }
+
+    let createOrFail name buckets =
+        create name buckets
+        |> Result.orFail
+
+    let name histogramMetric = histogramMetric.Name
+    let buckets histogramMetric = histogramMetric.Buckets
 
 //
 // Label
@@ -134,7 +213,7 @@ module Label =
 type SimpleDataSet = {
     Key: (string * string) list
     Value: MetricValue
-    Timestamp: DateTime option
+    Timestamp: DateTimeOffset option
 }
 
 [<RequireQualifiedAccess>]
@@ -149,12 +228,45 @@ module SimpleDataSet =
     let create labels value =
         createWithTimestamp labels value None
 
+type SimpleHistogramDataSet = {
+    Key: (string * string) list
+    Buckets: HistogramBuckets
+    Observations: float list
+    Timestamp: DateTimeOffset option
+}
+
+[<RequireQualifiedAccess>]
+module SimpleHistogramDataSet =
+    let createWithTimestamp labels buckets observations timestamp =
+        {
+            Key = labels
+            Buckets = buckets
+            Observations = observations
+            Timestamp = timestamp
+        }
+
+    let create labels buckets observations =
+        createWithTimestamp labels buckets observations None
+
 type DataSetKey = DataSetKey of Label list
 
 type DataSet = {
     Key: DataSetKey
     Value: MetricValue
-    Timestamp: DateTime option
+    Timestamp: DateTimeOffset option
+}
+
+type HistogramBucket = {
+    UpperBound: MetricValue
+    CumulativeCount: int
+}
+
+type HistogramDataSet = {
+    Key: DataSetKey
+    Buckets: HistogramBucket list
+    Sum: float
+    Count: int
+    Timestamp: DateTimeOffset option
 }
 
 type DataSetError =
@@ -211,6 +323,38 @@ module DataSet =
             Timestamp = Some timestamp
         }
 
+[<RequireQualifiedAccess>]
+module HistogramDataSet =
+    let private computeBuckets buckets observations =
+        buckets
+        |> HistogramBuckets.value
+        |> List.map (fun bound ->
+            {
+                UpperBound = HistogramBound.toMetricValue bound
+                CumulativeCount =
+                    observations
+                    |> List.filter (fun observation -> observation <= bound)
+                    |> List.length
+            }
+        )
+
+    let createFromSimple (simpleDataSet: SimpleHistogramDataSet): Result<HistogramDataSet, DataSetError> =
+        result {
+            let! labels =
+                simpleDataSet.Key
+                |> List.map Label.create
+                |> Result.sequence
+                |> Result.mapError LabelError
+
+            return {
+                Key = DataSetKey labels
+                Buckets = computeBuckets simpleDataSet.Buckets simpleDataSet.Observations
+                Sum = simpleDataSet.Observations |> List.sum
+                Count = simpleDataSet.Observations |> List.length
+                Timestamp = simpleDataSet.Timestamp
+            }
+        }
+
 //
 // Metric
 //
@@ -225,6 +369,12 @@ type Metric = {
 type MetricError =
     | MetricNameError of MetricNameError
     | DataSetError of DataSetError
+
+type Histogram = {
+    Name: MetricName
+    Description: string option
+    DataSets: HistogramDataSet list
+}
 
 [<RequireQualifiedAccess>]
 module MetricError =
@@ -252,7 +402,7 @@ module private Format =
         if string |> String.IsNullOrEmpty then None
         else Some string
 
-    let private createHeader { Name = name; Description = description; Type = metricType } =
+    let private createHeader name description metricType =
         let name' =
             name
             |> MetricName.value
@@ -270,34 +420,39 @@ module private Format =
         |> noneIfEmpty
         |> Option.map (sprintf "%s\n")
 
-    let private formatLabels (DataSetKey labels) =
+    let private createMetricHeader { Name = name; Description = description; Type = metricType } =
+        createHeader name description metricType
+
+    let private formatLabelsWithExtra extraLabels (DataSetKey labels) =
         labels
         |> List.map (fun label ->
             sprintf "%s=\"%s\"" (label.Name |> LabelName.value) label.Value
         )
+        |> List.append extraLabels
         |> String.concat ", "
         |> noneIfEmpty
         |> Option.map (sprintf "{%s}")
 
+    let private formatLabels = formatLabelsWithExtra []
+
     let private formatValue = function
         | Int int -> int.ToString()
         | Float float ->
-            let str = float.ToString()
+            let str = float.ToString Globalization.CultureInfo.InvariantCulture
             if str.Contains('.') then str.TrimEnd('0').TrimEnd('.') else str
         | Infinite -> "+Inf"
         | NegativeInfinite -> "-Inf"
         | NotANumber -> "Nan"
 
-    let private formatTimestamp (timestamp) =
-        let toTimestamp (dateTime: DateTime) =
-            // https://stackoverflow.com/questions/17632584/how-to-get-the-unix-timestamp-in-c-sharp
-            dateTime.Subtract(DateTime(1970, 1, 1)).TotalSeconds
-            |> int
+    let private formatTimestamp timestamp=
+        let toTimestamp (dateTime: DateTimeOffset) =
+            dateTime.ToUnixTimeSeconds()
+            |> string
 
         timestamp
-        |> Option.map (toTimestamp >> string)
+        |> Option.map toTimestamp
 
-    let private formatDataSet nameValue dataSet =
+    let private formatDataSet nameValue (dataSet: DataSet) =
         [
             nameValue |> Some
             dataSet.Key |> formatLabels
@@ -319,10 +474,75 @@ module private Format =
     let toString metric =
         let header =
             metric
-            |> createHeader
+            |> createMetricHeader
         let dataSets =
             metric.DataSets
             |> formatDataSets metric.Name
+            |> Some
+
+        [ header; dataSets ]
+        |> List.choose id
+        |> String.concat ""
+        |> sprintf "%s\n"
+
+    let private formatNameWithLabels name (key: DataSetKey) extraLabels =
+        let nameValue = name |> MetricName.value
+
+        match key |> formatLabelsWithExtra extraLabels with
+        | Some labels -> sprintf "%s%s" nameValue labels
+        | None -> nameValue
+
+    let private applyTimestamp timestamp =
+        match timestamp |> formatTimestamp with
+        | Some formatted -> fun sample -> sprintf "%s %s" sample formatted
+        | None -> id
+
+    let private formatHistogramDataSet name (dataSet: HistogramDataSet) =
+        let bucketLines =
+            dataSet.Buckets
+            |> List.map (fun bucket ->
+                let sampleName =
+                    formatNameWithLabels
+                        (name |> MetricName.withSuffix "_bucket")
+                        dataSet.Key
+                        [ sprintf "le=\"%s\"" (bucket.UpperBound |> formatValue) ]
+
+                sprintf "%s %i" sampleName bucket.CumulativeCount
+            )
+
+        let sumLine =
+            let sampleName =
+                formatNameWithLabels
+                    (name |> MetricName.withSuffix "_sum")
+                    dataSet.Key
+                    []
+
+            sprintf "%s %s" sampleName (dataSet.Sum |> Float |> formatValue)
+
+        let countLine =
+            let sampleName =
+                formatNameWithLabels
+                    (name |> MetricName.withSuffix "_count")
+                    dataSet.Key
+                    []
+
+            sprintf "%s %s" sampleName (dataSet.Count |> Int |> formatValue)
+
+        let withTimestamp = applyTimestamp dataSet.Timestamp
+
+        bucketLines @ [ sumLine; countLine ]
+        |> List.map withTimestamp
+
+    let histogramToString (histogram: Histogram) =
+        let header =
+            createHeader histogram.Name histogram.Description (Some Histogram)
+
+        let dataSets =
+            histogram.DataSets
+            |> List.sortBy _.Key
+            |> List.collect (formatHistogramDataSet histogram.Name)
+            |> String.concat "\n"
+            |> sprintf "%s\n"
             |> Some
 
         [ header; dataSets ]
@@ -356,7 +576,7 @@ module Metric =
                 simpleDataSets
                 |> List.map DataSet.createFromSimple
                 |> Result.sequence
-                |> Result.mapError DataSetError
+                |> Result.mapError MetricError.DataSetError
 
             return! create name description metricType dataSets
         }
@@ -367,13 +587,13 @@ module Metric =
     let createSimple name value =
         create name None None [ { Key = DataSetKey.empty; Value = value; Timestamp = None } ]
 
-    let createSimpleMetricWithDataSets name dataSets =
+    let createSimpleMetricWithDataSets name (dataSets: DataSet list) =
         createMetric name None None dataSets
 
     let createSimpleMetric name value =
         createSimpleMetricWithDataSets name [ { Key = DataSetKey.empty; Value = value; Timestamp = None } ]
 
-    let singleValue metric =
+    let singleValue (metric: Metric) =
         match metric.DataSets with
         | [ singleDataSet ] ->
             match singleDataSet.Key |> DataSetKey.labels with
@@ -382,3 +602,35 @@ module Metric =
         | _ -> None
 
     let format = Format.toString
+
+[<RequireQualifiedAccess>]
+module Histogram =
+    let createHistogram name description dataSets =
+        {
+            Name = name
+            Description = description
+            DataSets = dataSets
+        }
+
+    let create name description dataSets =
+        result {
+            let! name' =
+                name
+                |> MetricName.create
+                |> Result.mapError MetricError.MetricNameError
+
+            return createHistogram name' description dataSets
+        }
+
+    let createWithSimpleDataSets name description simpleDataSets =
+        result {
+            let! dataSets =
+                simpleDataSets
+                |> List.map HistogramDataSet.createFromSimple
+                |> Result.sequence
+                |> Result.mapError MetricError.DataSetError
+
+            return! create name description dataSets
+        }
+
+    let format = Format.histogramToString
