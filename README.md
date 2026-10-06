@@ -193,6 +193,7 @@ Service metrics (see [confluence](https://confluence.int.lmc.cz/display/ARCH/Ser
 ### Metric `service_status`
 ```fs
 open Alma.Metrics
+open Alma.Metrics.ServiceStatus
 
 let instance = {
     Domain = Domain "consents"
@@ -201,17 +202,13 @@ let instance = {
     Version = Version "stable"
 }
 
-let exampleServiceStatus = {
-    Audience = Audience "arch"
-}
-
-exampleServiceStatus
-|> ServiceStatus.enable instance
-|> ignore    // ignore is there because `enable` function returns Result, which might have error, but we don't care now
+ServiceStatus.markAsEnabled instance (Audience "arch")
+|> Result.iter MarkAsEnabled.execute    // `markAsEnabled` returns Result, which might have error, but we don't care now, so iter ignores it
 
 ServiceStatus.getFormattedValue()
 |> printfn "%s"
 ```
+_NOTE: `open Alma.Metrics.ServiceStatus` is required for `MarkAsEnabled.execute`. The fully qualified `ServiceStatus.MarkAsEnabled.execute` does not compile, because `ServiceStatus.MarkAsEnabled` resolves to the union case, not the module._
 
 Formatted Metric:
 ```
@@ -316,20 +313,20 @@ Formatted Metric:
 ```
 # HELP http_request_duration_seconds HTTP request duration in seconds.
 # TYPE http_request_duration_seconds histogram
-http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.005"} 0
-http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.01"} 0
-http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.025"} 2
-http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.05"} 2
-http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.1"} 2
-http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.25"} 3
-http_request_duration_seconds_bucket {endpoint="/api/consents", le="0.5"} 4
-http_request_duration_seconds_bucket {endpoint="/api/consents", le="1"} 4
-http_request_duration_seconds_bucket {endpoint="/api/consents", le="2.5"} 4
-http_request_duration_seconds_bucket {endpoint="/api/consents", le="5"} 4
-http_request_duration_seconds_bucket {endpoint="/api/consents", le="10"} 4
-http_request_duration_seconds_bucket {endpoint="/api/consents", le="+Inf"} 4
-http_request_duration_seconds_sum {endpoint="/api/consents"} 0.626
-http_request_duration_seconds_count {endpoint="/api/consents"} 4
+http_request_duration_seconds_bucket{le="0.005", endpoint="/api/consents"} 0
+http_request_duration_seconds_bucket{le="0.01", endpoint="/api/consents"} 0
+http_request_duration_seconds_bucket{le="0.025", endpoint="/api/consents"} 2
+http_request_duration_seconds_bucket{le="0.05", endpoint="/api/consents"} 2
+http_request_duration_seconds_bucket{le="0.1", endpoint="/api/consents"} 2
+http_request_duration_seconds_bucket{le="0.25", endpoint="/api/consents"} 3
+http_request_duration_seconds_bucket{le="0.5", endpoint="/api/consents"} 4
+http_request_duration_seconds_bucket{le="1", endpoint="/api/consents"} 4
+http_request_duration_seconds_bucket{le="2.5", endpoint="/api/consents"} 4
+http_request_duration_seconds_bucket{le="5", endpoint="/api/consents"} 4
+http_request_duration_seconds_bucket{le="10", endpoint="/api/consents"} 4
+http_request_duration_seconds_bucket{le="+Inf", endpoint="/api/consents"} 4
+http_request_duration_seconds_sum{endpoint="/api/consents"} 0.626
+http_request_duration_seconds_count{endpoint="/api/consents"} 4
 ```
 
 ### Histogram with state
@@ -340,9 +337,7 @@ open Alma.Metrics
 
 // PART 1: define your buckets and the histogram metric
 let buckets =
-    match HistogramBuckets.create [ 0.005; 0.01; 0.025; 0.05; 0.1; 0.25; 0.5; 1.0; 2.5; 5.0; 10.0 ] with
-    | Ok validBuckets -> validBuckets
-    | Error error -> failwithf "%A" error
+    HistogramBuckets.create [ 0.005; 0.01; 0.025; 0.05; 0.1; 0.25; 0.5; 1.0; 2.5; 5.0; 10.0 ]
 
 let histogramMetric =
     match HistogramMetric.create "http_request_duration_seconds" buckets with
