@@ -71,11 +71,11 @@ module State =
 
     let private addHistogramObservationValue value observation =
         let newBucketCounts =
-            List.map2 
+            List.map2
                 (fun currentCount bound ->
                     if value <= bound then currentCount + 1
                     else currentCount
-                ) 
+                )
                 observation.CumulativeBucketCounts
                 observation.Bounds
 
@@ -105,7 +105,7 @@ module State =
         {
             Key = key
             Buckets =
-                List.map2 
+                List.map2
                     (fun count bound ->
                         {
                             UpperBound = HistogramBound.toMetricValue bound

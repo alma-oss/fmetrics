@@ -151,7 +151,7 @@ let prometheusPureTests =
         ]
 
         testList "MetricValue properties" [
-            testProperty "should be commutative for finite Int and Float values" <| 
+            testProperty "should be commutative for finite Int and Float values" <|
                 Prop.forAll finiteIntFloatPairArb (fun (x, y) ->
                     Int x + Float y = Float y + Int x
                 )
